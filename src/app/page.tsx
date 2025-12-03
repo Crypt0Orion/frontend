@@ -15,11 +15,20 @@ function AuctionCard({ id }: { id: bigint }) {
     args: [id],
   });
 
+  const { data: winnerData } = useReadContract({
+    address: CONTRACTS.marketplace.address,
+    abi: CONTRACTS.marketplace.abi,
+    functionName: 'getCurrentWinner',
+    args: [id],
+  });
+
   if (!auction) return <div className="animate-pulse h-64 bg-gray-900 rounded-xl"></div>;
 
   const [nftAddress, tokenId, seller, paymentToken, startPrice, startTime, endTime, ended, canceled, bidsCount] = auction;
+  const [currentWinner, currentWinningAmount] = winnerData || ['0x0', 0n];
 
   const isLive = !ended && !canceled && BigInt(Math.floor(Date.now() / 1000)) < endTime;
+  const displayPrice = currentWinningAmount > 0n ? currentWinningAmount : startPrice;
 
   return (
     <Link href={`/auction/${id}`} className="group block">
@@ -47,7 +56,7 @@ function AuctionCard({ id }: { id: bigint }) {
           <div className="flex justify-between items-end">
             <div>
               <p className="text-xs text-gray-500 uppercase font-bold">Current Price</p>
-              <p className="text-xl font-bold text-white">{formatEther(startPrice)} mUSDC</p>
+              <p className="text-xl font-bold text-white">{formatEther(displayPrice)} mUSDC</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-500 uppercase font-bold">Ends In</p>

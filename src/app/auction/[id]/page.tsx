@@ -4,11 +4,12 @@ import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAcc
 import { CONTRACTS } from '@/lib/contracts';
 import { Navbar } from '@/components/Navbar';
 import { formatEther, parseEther } from 'viem';
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
-export default function AuctionDetail({ params }: { params: { id: string } }) {
-    const auctionId = BigInt(params.id);
+export default function AuctionDetail({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const auctionId = BigInt(id);
     const { address: userAddress } = useAccount();
     const [bidAmount, setBidAmount] = useState('');
 
@@ -47,17 +48,25 @@ export default function AuctionDetail({ params }: { params: { id: string } }) {
     const handleBid = async () => {
         if (!bidAmount) return;
 
-        // First approve (simplified for MVP - in real app check allowance first)
-        // For MVP we assume approval is done or we trigger it. 
-        // Actually, let's just try to bid. If it fails, user needs to approve.
-        // Ideally we should have an "Approve" button first.
-
-        writeContract({
-            address: CONTRACTS.marketplace.address,
-            abi: CONTRACTS.marketplace.abi,
-            functionName: 'placeBid',
-            args: [auctionId, parseEther(bidAmount)],
-        });
+        try {
+            writeContract({
+                address: CONTRACTS.marketplace.address,
+                abi: CONTRACTS.marketplace.abi,
+                functionName: 'placeBid',
+                args: [auctionId, parseEther(bidAmount)],
+            }, {
+                onSuccess: () => {
+                    // Toast success (mock)
+                    console.log("Bid submitted");
+                },
+                onError: (error) => {
+                    console.error("Bid failed", error);
+                    alert("Bid failed: " + error.message);
+                }
+            });
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const handleApprove = () => {

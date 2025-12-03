@@ -65,7 +65,7 @@ export default function CreateAuction() {
                                 type="text"
                                 className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 outline-none"
                                 value={nftAddress}
-                                onChange={(e) => setNftAddress(e.target.value)}
+                                onChange={(e) => setNftAddress(e.target.value as `0x${string}`)}
                             />
                         </div>
 
